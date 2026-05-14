@@ -1,9 +1,9 @@
 <?php
 $plugin['name'] = 'adi_form_links';
-$plugin['version'] = '0.5';
-$plugin['author'] = 'Adi Gilbert';
-$plugin['author_uri'] = 'http://www.greatoceanmedia.com.au/';
-$plugin['description'] = 'Admin-side form links';
+$plugin['version'] = '0.6.0';
+$plugin['author'] = 'Adi Gilbert / Stef Dawson';
+$plugin['author_uri'] = 'https://stefdawson.com/';
+$plugin['description'] = 'Admin-side form link shortcuts';
 $plugin['type'] = 3;
 $plugin['flags'] = 0x0001 | 0x0002; // plugin options and lifecycle
 
@@ -19,9 +19,6 @@ adi_link_list => Link list
 adi_list_format => List format
 adi_none_found => None found
 adi_pref_update_fail => Preference update failed
-adi_textpack_fail => Textpack installation failed
-adi_textpack_feedback => Textpack feedback
-adi_textpack_online => Textpack also available online
 adi_update_prefs => Update preferences
 EOT;
 # --- END PLUGIN TEXTPACK ---
@@ -49,18 +46,6 @@ Forms shown in grey haven't been found in the database.
 
 Clicking or selecting a form in the list will take you to the Form Edit tab for that form. If the form doesn't exist then you'll be taken to a Form create tab.
 
-h2. *Textpack*
-
-To install the Textpack, go to the plugin's Options tab and click on 'Install textpack'.  This will copy & install it from a remote server. The number of language strings installed for your language will be displayed.
-
-If the Textpack installation fails (possibly due to an error accessing the remote site), the alternative is to click the "Textpack also available online":http://www.greatoceanmedia.com.au/textpack link.  This will take you to a website where the Textpack can be manually copied & pasted into the _TXP Admin - Language_ tab.
-
-Additions and corrections to the Textpack are welcome - please use the "Textpack feedback":http://www.greatoceanmedia.com.au/textpack/?plugin=adi_form_links form.
-
-h2(adi_extras). *Additional information*
-
-p(adi_extras). Support and further information can be obtained from the "Textpattern support forum":http://forum.textpattern.com/viewtopic.php?id=37006. A copy of this help is also available "online":http://www.greatoceanmedia.com.au/txp/?plugin=adi_form_links.  More adi_plugins can be found "here":http://www.greatoceanmedia.com.au/txp/.
-
 # --- END PLUGIN HELP ---
 <?php
 }
@@ -83,7 +68,7 @@ p(adi_extras). Support and further information can be obtained from the "Textpat
 	0.3		- fixes: to back up the wild claim made about TXP 4.6 in version 0.2
 			- code tidy up
 	0.2		- ignore invalid form names
-			- blacklist
+			- blocklist
 			- tested on TXP 4.6
 	0.1		- initial release (from an idea by Edoardo @wornout & thoroughly tested by Uli)
 
@@ -91,10 +76,9 @@ p(adi_extras). Support and further information can be obtained from the "Textpat
 
 //??? CODE
 
-global $adi_form_links_debug, $adi_form_links_blacklist;
+global $adi_form_links_debug, $adi_form_links_blocklist;
 
-if (@txpinterface == 'admin') {
-
+if (txpinterface == 'admin') {
 	$adi_form_links_debug = 0;
 
 	if (!version_compare(txp_version, '4.7', '>=')) return;
@@ -104,9 +88,9 @@ if (@txpinterface == 'admin') {
 	// 		adi_menu	- speaking_block_form
 	// 		com_connect	- body_form, from_form, subject_form, thanks_form, to_form
 	// and cater for false positives:
-	$adi_form_links_blacklist[] = 'smd_wrap:transform';
-	$adi_form_links_blacklist[] = 'smd_wrap_all:transform';
-// 	$adi_form_links_blacklist[] = 'another_tag:another_attribute';
+	$adi_form_links_blocklist[] = 'smd_wrap:transform';
+	$adi_form_links_blocklist[] = 'smd_wrap_all:transform';
+// 	$adi_form_links_blocklist[] = 'another_tag:another_attribute';
 
 	// asynchronous action for Ajaxy save
 	if (gps('adi_form_links_async')) {
@@ -138,15 +122,6 @@ function adi_form_links_init() {
 
 	// register adi_form_links_admin event (to stop adi_detritus complaining about prefs) - adi_form_links_admin() function currently not used
 	register_callback('adi_form_links_admin', 'adi_form_links_admin');
-
-	// Textpack
-	$adi_form_links_url = array(
-		'textpack' => 'http://www.greatoceanmedia.com.au/files/adi_textpack.txt',
-		'textpack_download' => 'http://www.greatoceanmedia.com.au/textpack/download',
-		'textpack_feedback' => 'http://www.greatoceanmedia.com.au/textpack/?plugin=adi_form_links',
-	);
-	if (strpos($prefs['plugin_cache_dir'], 'adi') !== FALSE) // use Adi's local version
-		$adi_form_links_url['textpack'] = $prefs['plugin_cache_dir'].'/adi_textpack.txt';
 
 	// get hold of language strings hidden behind event wall
 	adi_form_links_load_lang('install_textpack, publisher, managing_editor, copy_editor, staff_writer, freelancer, designer, tag_popup');
@@ -259,7 +234,7 @@ function adi_form_links_update_prefs() {
 
 function adi_form_links_markup() {
 // find the forms & generate the markup
-	global $event, $step, $adi_form_links_debug, $adi_form_links_blacklist;
+	global $event, $step, $adi_form_links_debug, $adi_form_links_blocklist;
 
 	$debug = __FUNCTION__.'():'.br;
 
@@ -318,7 +293,7 @@ function adi_form_links_markup() {
 
 	$debug.= "LAST SAVED: name=$last_saved".br;
 	$debug.= "DEDUCED: name=$name".br;
-	$debug .= 'BLACKLIST: '.implode('; ', $adi_form_links_blacklist).br;
+	$debug .= 'BLOCKLIST: '.implode('; ', $adi_form_links_blocklist).br;
 
 	// parse the page/form
 	if (!defined('TXP_PATTERN'))
@@ -334,9 +309,10 @@ function adi_form_links_markup() {
 	// generate markup
 	if ($form_tags) {
 		$lis = $selects = array();
+		$skin = get_pref('skin_editing', 'default');
 		foreach ($form_tags as $attr_name_pair) {
 			list($form_name, $tag_name) = explode(':', $attr_name_pair); // extract 'form_name:tag_name' into vars
-			if (safe_row('name', 'txp_form', " name='".doSlash($form_name)."'")) { // form exists
+			if (safe_row('name', 'txp_form', " name='".doSlash($form_name)."' AND skin='".doSlash($skin)."'")) { // form exists
 				$class = '';
 				$elink_step = 'form_edit';
 				$elink_thing = 'name';
@@ -377,7 +353,7 @@ function adi_form_links_markup() {
 
 function adi_form_links_process_code($code, &$debug) {
 // recursively process page/form code, returns form name/tag array
-	global $adi_form_links_blacklist;
+	global $adi_form_links_blocklist;
 
 	$form_tags = array();
 
@@ -399,8 +375,8 @@ function adi_form_links_process_code($code, &$debug) {
 						foreach ($matches[1] as $index => $attr) {
 							$form_name = trim($matches[2][$index]);
 							$debug .= "- FORM ATTR=$attr, FORM NAME=".htmlspecialchars($form_name);
-							if (in_array(strtolower("$tag:$attr"), $adi_form_links_blacklist)) // case insensitive - just in Case!
-								$debug .= ' ***BLACKLISTED***';
+							if (in_array(strtolower("$tag:$attr"), $adi_form_links_blocklist)) // case insensitive - just in Case!
+								$debug .= ' ***BLOCKLISTED***';
 							else if ($form_name == '')
 								$debug .= ' ***IGNORED***';
 							else
@@ -621,19 +597,6 @@ function adi_form_links_options($event, $step) {
 	$message = '';
 
 	// step-tastic
-	if ($step == 'textpack') {
-		if (function_exists('install_textpack')) {
-			$adi_textpack = file_get_contents($adi_form_links_url['textpack']);
-			if ($adi_textpack) {
-				$result = install_textpack($adi_textpack);
-				$message = gTxt('textpack_strings_installed', array('{count}' => $result));
-				$new_lang = load_lang($lang_ui, 'admin');
-				Txp::get('\Textpattern\L10n\Lang')->setPack($new_lang, TRUE);
-			}
-			else
-				$message = gTxt('adi_textpack_fail');
-		}
-	}
 	if ($step == 'update_prefs') {
 		$result = adi_form_links_update_prefs();
 		$result ? $message = gTxt('preferences_saved') : $message = gTxt('adi_pref_update_fail');
@@ -672,10 +635,6 @@ function adi_form_links_options($event, $step) {
 			.eInput($event)
 			.sInput('update_prefs')
 		)
-		// textpack links
-		.graf(href(gTxt('install_textpack'), '?event='.$event.'&amp;step=textpack'), ' style="margin-top:3em"')
-		.graf(href(gTxt('adi_textpack_online'), $adi_form_links_url['textpack_download']))
-		.graf(href(gTxt('adi_textpack_feedback'), $adi_form_links_url['textpack_feedback']))
 		, 'div'
 		, ' style="text-align:center; margin-bottom:3em"'
 	);

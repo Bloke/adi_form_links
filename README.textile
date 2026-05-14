@@ -1,0 +1,16 @@
+h1. *adi_form_links* - Admin-side form links
+
+This plugin is an enhancement to the standard Txp Page and Form tabs designed to help speed up workflow.  It lists forms that are referenced within the current page or form. From an "idea by Edoardo":http://forum.textpattern.com/viewtopic.php?id=36961.
+
+h2. *Usage*
+
+After installing & activating the plugin, go to the Pages or Forms tab and you'll find a list of forms referenced by the current page or form.
+
+The list can either be a simple list of links or a popup - choose your preference in the plugin options.
+
+Forms are listed in the order they're found and their plugin tag is shown also.
+
+Forms shown in grey haven't been found in the database.
+
+Clicking or selecting a form in the list will take you to the Form Edit tab for that form. If the form doesn't exist then you'll be taken to a Form create tab.
+

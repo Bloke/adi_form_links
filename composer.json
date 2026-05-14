@@ -1,0 +1,16 @@
+{
+  "name": "bloke/adi_form_links",
+  "description": "Admin-side form link shortcuts",
+  "keywords": ["textpattern", "plugin", "find", "forms", "form", "snippet", "page", "shortcut", "link"],
+  "homepage": "https://github.com/bloke/adi_form_links",
+  "license": "GPL-3.0",
+  "type": "textpattern-plugin",
+  "support": {
+    "issues": "https://github.com/bloke/adi_form_links/issues",
+    "source": "https://github.com/bloke/adi_form_links"
+  },
+  "require": {
+    "textpattern/lock": ">=4.7.0",
+    "textpattern/installer": "*"
+  }
+}

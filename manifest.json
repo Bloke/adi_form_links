@@ -1,0 +1,11 @@
+{
+  "name": "adi_form_links",
+  "description": "Admin-side form link shortcuts",
+  "version": "0.6.0",
+  "type": 3,
+  "author": "Adi Gilbert / Stef Dawson",
+  "author_uri": "https://stefdawson.com/",
+  "order": 5,
+  "flags": 3,
+  "help": {"file" : ["./README.textile"]}
+}
