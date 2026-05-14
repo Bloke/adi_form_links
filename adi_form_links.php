@@ -371,7 +371,8 @@ function adi_form_links_process_code($code, &$debug) {
 					$tag = $morsel[1];
 					$attrs = $morsel[2];
 					$debug .= "TAG=$tag, ATTRS=[".htmlspecialchars($attrs).']'.br;
-					if (preg_match_all("/(\S*form)\s*=\s*\"(.+)\"/iUs", $attrs, $matches)) // look for form-like attributes
+					// look for form-like attributes
+					if (preg_match_all("/(\S*form)\s*=\s*\"(.+)\"/iUs", $attrs, $matches)) {
 						foreach ($matches[1] as $index => $attr) {
 							$form_name = trim($matches[2][$index]);
 							$debug .= "- FORM ATTR=$attr, FORM NAME=".htmlspecialchars($form_name);
@@ -383,7 +384,9 @@ function adi_form_links_process_code($code, &$debug) {
 								$form_tags[] = "$form_name:$tag"; // form attribute value (i.e. form name) & tag name - e.g. html_tail:output_form
 							$debug .= br;
 						}
-					$form_tags = array_merge($form_tags, adi_form_links_process_code($morsel[3], $debug));
+					}
+
+					$form_tags = array_merge($form_tags, adi_form_links_process_code(($morsel[3] === null ? '' : $morsel[3]), $debug));
 				}
 			}
 		}
